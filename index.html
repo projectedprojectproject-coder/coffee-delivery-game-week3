@@ -1,4 +1,12 @@
-<!doctype html><html lang="ko"><head><title>커피 배달 게임 | 프롬프트 구조화 실습</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}body{margin:0;background:#efe5d2;font-family:"Noto Sans KR","Malgun Gothic",sans-serif;color:#f4ebd7;overflow:auto}main{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}canvas{width:100%;min-height:0;flex:1;object-fit:contain;display:block}nav{flex-shrink:0;display:flex;justify-content:center;gap:5px;flex-wrap:wrap;padding:9px}button{font:inherit;font-size:12px;border:1px solid #aabbb0;border-radius:3px;background:#f9f4e6;color:#365b50;padding:9px 11px;cursor:pointer;touch-action:none}p{font-size:11px;margin:0 8px 8px;color:#56624a}</style></head><body><main><canvas tabindex="0" aria-label="플레이할 게임"></canvas><nav><button id="start">시작 / 계속</button><button id="pause">잠깐 멈추기</button><button id="reset">처음으로</button><button id="action">커피 받기 / 전하기</button><button data-dir="0,-1" aria-label="위">↑</button><button data-dir="-1,0" aria-label="왼쪽">←</button><button data-dir="0,1" aria-label="아래">↓</button><button data-dir="1,0" aria-label="오른쪽">→</button></nav><p>시작을 누른 뒤 방향키 / WASD로 이동 · E / Space로 배달</p></main><script>/* Dal-dongne Coffee. Original geometry and software 3D renderer. No dependencies. */
+<!doctype html><html lang="ko"><head><title>커피 배달 게임 | 프롬프트 구조화 실습</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}body{margin:0;background:#efe5d2;font-family:"Noto Sans KR","Malgun Gothic",sans-serif;color:#f4ebd7;overflow:auto}main{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}canvas{width:100%;min-height:0;flex:1;object-fit:contain;display:block}nav{flex-shrink:0;display:flex;justify-content:center;gap:5px;flex-wrap:wrap;padding:9px}button{font:inherit;font-size:12px;border:1px solid #aabbb0;border-radius:3px;background:#f9f4e6;color:#365b50;padding:9px 11px;cursor:pointer;touch-action:none}p{font-size:16px;margin:0 8px 8px;color:#4a2f1f;text-align:center;white-space:normal;overflow-wrap:break-word}
+#controls.hidden{display:none}
+.keys{display:flex;justify-content:center;align-items:center;gap:16px;flex-wrap:wrap;padding:2px 10px 10px;font-size:12px;color:#3c5347}
+.keys .grp{display:flex;align-items:center;gap:6px}
+.keys .lbl{color:#56624a}
+.keys kbd{display:inline-block;min-width:15px;padding:4px 8px;border:1px solid #8a9a86;border-radius:5px;background:#fbf6ea;color:#2f4a3d;font:600 12px/1 inherit;text-align:center;box-shadow:0 2px 0 #c9c0a2}
+#perks{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 10px 9px}
+#perks[hidden]{display:none}
+#perks button{max-width:320px;text-align:left;background:#fdf3df;border-color:#c99b5f;color:#7a4a1f;line-height:1.35}</style></head><body><main><canvas tabindex="0" aria-label="플레이할 게임"></canvas><div id="controls"><nav><button id="start">시작 / 계속</button><button id="pause">잠깐 멈추기</button><button id="reset">처음으로</button><button id="action">커피 받기 / 전하기</button><button data-dir="0,-1" aria-label="위">↑</button><button data-dir="-1,0" aria-label="왼쪽">←</button><button data-dir="0,1" aria-label="아래">↓</button><button data-dir="1,0" aria-label="오른쪽">→</button></nav><div id="perks" hidden><button id="perk1"></button><button id="perk2"></button></div><div class="keys"><span class="grp"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd><span class="lbl">/</span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span class="lbl">이동</span></span><span class="grp"><kbd>E</kbd><span class="lbl">/</span><kbd>Space</kbd><span class="lbl">커피 받기 · 전달</span></span><span class="grp"><kbd>Enter</kbd><span class="lbl">시작 / 계속</span></span><span class="grp"><kbd>1</kbd><kbd>2</kbd><span class="lbl">DAY 클리어 시 성장 카드 선택</span></span><span class="grp"><kbd>N</kbd><span class="lbl">컨트롤 숨기기</span></span></div></div><p>① 시작 누르기 → ② 방향키로 이동 → ③ 카페에서 E로 커피 받기 → ④ 이웃 앞에서 E로 배달하기</p></main><script>/* Dal-dongne Coffee. Original geometry and software 3D renderer. No dependencies. */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.Daldongne=api})(typeof globalThis!=='undefined'?globalThis:this,function(){
 'use strict';
 const W=1200,H=800,R=5.5,TAU=Math.PI*2;
@@ -18,38 +26,68 @@ const SITES=[
  {id:'home2',lon:2.82,lat:.56,name:'작은집',en:'Small House',type:'hanok',color:'#dfcfaf',roof:'#555b62',w:1.25,d:.98,h:.74},
  {id:'home3',lon:-2.65,lat:-.61,name:'언덕집',en:'Hill House',type:'hanok',color:'#ead9b6',roof:'#64746a',w:1.2,d:1,h:.75}
 ].map(s=>({...s,n:at(s.lon,s.lat),door:at(s.lon,s.lat-.24)}));
-const ORDERS=SITES.slice(1,5),CAFE=SITES[0];
-function newGame(){const n=at(-.13,-.025);return {n,north:frame(n).u,facing:0,time:0,moving:false,status:'ready',carrying:0,done:[],target:'cafe',locale:'ko',message:'카페 앞에서 커피를 받아 보세요.',messageTime:8,steps:0,round:1};}
-function start(s){if(s.status==='ready'||s.status==='paused')s.status='playing'}
+const CAFE=SITES[0],DELIVERY_COUNT=4,DAY1_TIME=180,FLAVORS=['따뜻한 아메리카노','아이스 라테','디카페인 라테','따뜻한 보리 라테','바닐라 라테','카페모카','콜드브루 커피','헤이즐넛 라테'];
+const PERK_POOL=[
+ {id:'speed',name:'가벼운 발걸음',desc:'이동 속도 +15%',apply:s=>{s.perkSpeedMul*=1.15}},
+ {id:'time',name:'여유로운 하루',desc:'다음 날부터 제한시간 +10초',apply:s=>{s.perkTimeBonus+=10}},
+ {id:'radius',name:'익숙한 골목',desc:'상호작용 판정 범위 +20%',apply:s=>{s.perkRadiusMul*=1.2}},
+ {id:'life',name:'여분의 하루',desc:'시간 초과 시 1회 부활 (하트 +1)',apply:s=>{s.lives+=1}}
+];
+function loadBestDay(){try{return parseInt(localStorage.getItem('daldongne_best_day')||'0',10)||0}catch(e){return 0}}
+function saveBestDay(v){try{localStorage.setItem('daldongne_best_day',String(v))}catch(e){}}
+function dayTimeLimit(day){return DAY1_TIME*Math.pow(.9,day-1)}
+function speedFactor(s){return s.perkSpeedMul*(1+(s.day-1)*.05)}
+function pickDayOrders(){
+ const pool=SITES.filter(x=>x.id!=='cafe').slice();
+ for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}
+ return pool.slice(0,DELIVERY_COUNT).map(x=>({id:x.id,order:x.order||FLAVORS[Math.floor(Math.random()*FLAVORS.length)],neighbor:x.neighbor||(x.name+' 이웃')}));
+}
+function pickPerks(){const pool=PERK_POOL.slice();for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]]}return pool.slice(0,2).map(p=>p.id)}
+function applyPerk(s,id){const p=PERK_POOL.find(x=>x.id===id);if(p)p.apply(s)}
+function choosePerk(s,idx){if(s.status!=='dayclear'||!s.perkChoices[idx])return false;applyPerk(s,s.perkChoices[idx]);s.perkChoices=[];advanceDay(s);s.status='playing';return true}
+function newGame(){const n=at(-.13,-.025),timeLimit=dayTimeLimit(1);return {n,north:frame(n).u,facing:0,time:0,moving:false,status:'ready',carrying:0,done:[],target:'cafe',locale:'ko',message:'카페 앞에서 커피를 받아 보세요.',messageTime:8,steps:0,day:1,timeLimit,timeLeft:timeLimit,dayOrders:pickDayOrders(),perkSpeedMul:1,perkRadiusMul:1,perkTimeBonus:0,lives:0,perkChoices:[],bestDay:loadBestDay()};}
+function advanceDay(s){s.day++;s.timeLimit=dayTimeLimit(s.day)+s.perkTimeBonus;s.timeLeft=s.timeLimit;s.done=[];s.carrying=0;s.dayOrders=pickDayOrders();s.target='cafe';s.n=at(-.13,-.025);s.north=frame(s.n).u;s.facing=0;s.moving=false;s.steps=0;announce(s,'DAY'+s.day+' 시작! 카페에서 커피를 받아 보세요.')}
+function start(s){if(s.status==='dayclear'){choosePerk(s,0);return}if(s.status==='ready'||s.status==='paused')s.status='playing'}
 function pause(s){if(s.status==='playing')s.status='paused';else if(s.status==='paused')s.status='playing'}
 function target(s){return SITES.find(x=>x.id===s.target)||CAFE}
-function nearest(s){const a=[CAFE,...ORDERS].map(site=>({site,d:angle(s.n,site.door)})).sort((a,b)=>a.d-b.d)[0];return a.d<.205?a.site:null}
+function orderSites(s){return s.dayOrders.map(o=>SITES.find(x=>x.id===o.id))}
+function nearest(s){const a=[CAFE,...orderSites(s)].map(site=>({site,d:angle(s.n,site.door)})).sort((a,b)=>a.d-b.d)[0];return a.d<.205*s.perkRadiusMul?a.site:null}
 function announce(s,m){s.message=m;s.messageTime=5}
 function interact(s){
  if(s.status!=='playing')return false;const site=nearest(s);
  if(!site){announce(s,'안내 화살표를 따라 이웃 앞으로 다가가세요.');return false}
  if(site.id==='cafe'){
   if(s.carrying){announce(s,'커피가 준비됐어요. 이웃에게 전해 주세요.');return false}
-  if(s.done.length===4)return false;
-  s.carrying=4-s.done.length;s.target=ORDERS.find(x=>!s.done.includes(x.id)).id;announce(s,'따뜻한 마음 네 잔, 배달을 시작해요.');return true;
+  if(s.done.length===DELIVERY_COUNT)return false;
+  s.carrying=DELIVERY_COUNT-s.done.length;s.target=s.dayOrders.find(o=>!s.done.includes(o.id)).id;announce(s,'따뜻한 마음 네 잔, 배달을 시작해요.');return true;
  }
  if(s.done.includes(site.id)){announce(s,'이미 배달했어요. 다음 이웃을 찾아보세요.');return false}
  if(!s.carrying){s.target='cafe';announce(s,'먼저 카페에서 커피를 받아 주세요.');return false}
- s.carrying--;s.done.push(site.id);announce(s,site.neighbor+' · “고마워요! 좋은 하루 보내요.”');
- if(s.done.length===4){s.status='won';s.target='cafe';announce(s,'네 이웃에게 모두 전했어요. 오늘도 좋은 하루!')}
- else s.target=ORDERS.find(x=>!s.done.includes(x.id)).id;
+ const info=s.dayOrders.find(o=>o.id===site.id);
+ s.carrying--;s.done.push(site.id);announce(s,info.neighbor+' · “고마워요! 좋은 하루 보내요.”');
+ if(s.done.length===DELIVERY_COUNT){
+  s.status='dayclear';s.target='cafe';s.perkChoices=pickPerks();
+  if(s.day>s.bestDay){s.bestDay=s.day;saveBestDay(s.bestDay)}
+  announce(s,'DAY'+s.day+' 배달을 모두 마쳤어요!');
+ }
+ else s.target=s.dayOrders.find(o=>!s.done.includes(o.id)).id;
  return true;
 }
 function step(s,dt,input={}){
  if(s.status!=='playing')return;dt=clamp(dt,0,.05);s.time+=dt;s.messageTime=Math.max(0,s.messageTime-dt);
+ s.timeLeft=Math.max(0,s.timeLeft-dt);
+ if(s.timeLeft<=0){
+  if(s.lives>0){s.lives--;s.timeLeft=s.timeLimit;announce(s,'하트를 사용해 다시 도전해요! (남은 하트 '+s.lives+')');return}
+  s.status='timeup';s.moving=false;announce(s,'시간이 다 됐어요. DAY'+s.day+' 도전 실패!');return;
+ }
  let x=input.x||0,y=input.y||0;const l=Math.hypot(x,y);if(l>1){x/=l;y/=l}s.moving=!!(x||y);
  if(!s.moving)return;
- const east=norm(cross(s.north,s.n)),v=add(mul(east,x),mul(s.north,-y)),next=norm(add(s.n,mul(v,dt*.37)));
+ const east=norm(cross(s.north,s.n)),v=add(mul(east,x),mul(s.north,-y)),next=norm(add(s.n,mul(v,dt*.37*speedFactor(s))));
  if(!SITES.some(b=>angle(next,b.n)<Math.max(b.w,b.d)/(2*R)+.033)){
   s.n=next;s.north=norm(sub(s.north,mul(next,dot(s.north,next))));s.facing=Math.atan2(x,-y);s.steps+=dt*3;
  }
 }
-function chooseTarget(s,id){if(id==='cafe'||ORDERS.some(o=>o.id===id&&!s.done.includes(id)))s.target=id}
+function chooseTarget(s,id){if(id==='cafe'||s.dayOrders.some(o=>o.id===id&&!s.done.includes(id)))s.target=id}
 // Geometry in true three-dimensional world coordinates. Canvas is the raster target.
 const LIGHT=norm([-1,2,3]);
 function shade(hex,k){const a=hex.slice(1).match(/../g).map(x=>parseInt(x,16));return '#'+a.map(v=>Math.round(clamp(v*k,0,255)).toString(16).padStart(2,'0')).join('')}
@@ -66,8 +104,9 @@ function makeScene(locale){
  for(let j=0;j<24;j++)for(let i=0;i<48;i++){const a=i/48*TAU,b=-Math.PI/2+j/24*Math.PI;const v=[at(a,b),at(a+TAU/48,b),at(a+TAU/48,b+Math.PI/24),at(a,b+Math.PI/24)].map(n=>mul(n,R));const color=shade(korean?'#b9c998':'#b9cbb0',.98+rand()*.035);poly([v[0],v[1],v[2]],color);poly([v[0],v[2],v[3]],color)}
  currentLayer=1;
  function road(a,b,width=.13,color='#e9d7b2'){const count=Math.ceil(angle(a,b)*45);for(let i=0;i<count;i++){const n1=norm(add(mul(a,1-i/count),mul(b,i/count))),n2=norm(add(mul(a,1-(i+1)/count),mul(b,(i+1)/count))),side=norm(cross(n1,n2));poly([add(mul(n1,R+.025),mul(side,-width)),add(mul(n1,R+.025),mul(side,width)),add(mul(n2,R+.025),mul(side,width)),add(mul(n2,R+.025),mul(side,-width))],color,false)}}
- const routes=[[CAFE.door,ORDERS[0].door],[CAFE.door,at(-.65,.05),at(-1.12,.35),at(-1.15,.58),ORDERS[1].door],[ORDERS[1].door,ORDERS[2].door],[ORDERS[2].door,at(1.3,.35),at(1.35,0),at(1.4,-.35),ORDERS[3].door]];for(const route of routes)for(let i=1;i<route.length;i++)road(route[i-1],route[i],.16);
- road(CAFE.door,at(-.13,-.025),.2);road(SITES.find(x=>x.id==='home4').door,CAFE.door,.14);road(SITES.find(x=>x.id==='home5').door,ORDERS[0].door,.14);road(SITES.find(x=>x.id==='home2').door,SITES.find(x=>x.id==='home3').door,.14);
+ const BOOKS=SITES[1],STORE=SITES[2],LAUNDRY=SITES[3],PAVILION=SITES[4];
+ const routes=[[CAFE.door,BOOKS.door],[CAFE.door,at(-.65,.05),at(-1.12,.35),at(-1.15,.58),STORE.door],[STORE.door,LAUNDRY.door],[LAUNDRY.door,at(1.3,.35),at(1.35,0),at(1.4,-.35),PAVILION.door]];for(const route of routes)for(let i=1;i<route.length;i++)road(route[i-1],route[i],.16);
+ road(CAFE.door,at(-.13,-.025),.2);road(SITES.find(x=>x.id==='home4').door,CAFE.door,.14);road(SITES.find(x=>x.id==='home5').door,BOOKS.door,.14);road(SITES.find(x=>x.id==='home2').door,SITES.find(x=>x.id==='home3').door,.14);
  // A narrow stream wraps the lower part of the world.
  for(let i=0;i<80;i++){const a=i/80*TAU,b=(i+1)/80*TAU;road(at(a,-.72+Math.sin(a*3)*.1),at(b,-.72+Math.sin(b*3)*.1),.18,'#87b7b1')}
  currentLayer=2;
@@ -127,7 +166,8 @@ function draw(c,s,{overlay=true}={}){
    for(let i=0;i<s.carrying;i++){const x=(i%2-.5)*.16,z=-.23-Math.floor(i/2)*.16;const base=pos(x,.3,z),top=pos(x,.435,z);for(let a=0;a<8;a++){const k=a/8*TAU,k2=(a+1)/8*TAU;dynPoly([add(base,add(mul(f.e,Math.cos(k)*.048),mul(f.u,Math.sin(k)*.048))),add(base,add(mul(f.e,Math.cos(k2)*.048),mul(f.u,Math.sin(k2)*.048))),add(top,add(mul(f.e,Math.cos(k2)*.058),mul(f.u,Math.sin(k2)*.058))),add(top,add(mul(f.e,Math.cos(k)*.058),mul(f.u,Math.sin(k)*.058)))],a%2?'#f0e7d1':'#e0d2b2')};ball(pos(x,.446,z),.058,'#805a40',1,.17,1)}
   }
  }
- for(const o of ORDERS){person(o.door,false,s.done.includes(o.id)?'#829b75':['#af7869','#8d9675','#a29dab','#b89868'][ORDERS.indexOf(o)]);if(!s.done.includes(o.id))labels.push({pos:mul(o.door,R+1.03),text:'·',kind:'pin',n:o.door,id:o.id});}
+ const dayOrderSites=orderSites(s);
+ dayOrderSites.forEach((o,i)=>{person(o.door,false,s.done.includes(o.id)?'#829b75':['#af7869','#8d9675','#a29dab','#b89868'][i%4]);if(!s.done.includes(o.id))labels.push({pos:mul(o.door,R+1.03),text:'·',kind:'pin',n:o.door,id:o.id});});
  person(s.n,true,'#467f76');
  labels.push({pos:mul(CAFE.door,R+.85),text:'☕',kind:'pin',n:CAFE.door,id:'cafe'});
  const faces=[];for(const p of polys){const center=mul(p.pts.reduce(add,[0,0,0]),1/p.pts.length);if(dot(norm(center),cam.eyeN)<(p.layer===0?-.05:.29))continue;const pts=p.pts.map(cam.project);if(pts.some(p=>p.z<=.1))continue;faces.push({pts,color:p.color,layer:p.layer,z:pts.reduce((a,p)=>a+p.z,0)/pts.length})}faces.sort((a,b)=>a.layer-b.layer||b.z-a.z);
@@ -135,21 +175,31 @@ function draw(c,s,{overlay=true}={}){
  // Only front-facing labels remain legible above their own buildings.
  for(const l of labels){if(dot(l.n,cam.eyeN)<.22)continue;const p=cam.project(l.pos);if(l.kind==='sign'){
   c.font='500 14px "Workshop", "Noto Sans KR", sans-serif';const width=c.measureText(l.text).width+18;c.fillStyle='#faf2df';c.fillRect(p.x-width/2,p.y-12,width,24);c.fillStyle='#49584a';c.textAlign='center';c.fillText(l.text,p.x,p.y+5);
- }else if(l.id===s.target){const bounce=Math.sin(s.time*3)*3;c.fillStyle='#b5704f';c.beginPath();c.moveTo(p.x,p.y+13+bounce);c.lineTo(p.x-8,p.y-1+bounce);c.lineTo(p.x+8,p.y-1+bounce);c.fill();c.beginPath();c.arc(p.x,p.y-14+bounce,15,0,TAU);c.fill();c.fillStyle='#fff7e5';c.font='500 17px sans-serif';c.textAlign='center';c.fillText(l.id==='cafe'?'C':String(ORDERS.findIndex(o=>o.id===l.id)+1),p.x,p.y-8+bounce)}}
+ }else if(l.id===s.target){const bounce=Math.sin(s.time*3)*3;c.fillStyle='#b5704f';c.beginPath();c.moveTo(p.x,p.y+13+bounce);c.lineTo(p.x-8,p.y-1+bounce);c.lineTo(p.x+8,p.y-1+bounce);c.fill();c.beginPath();c.arc(p.x,p.y-14+bounce,15,0,TAU);c.fill();c.fillStyle='#fff7e5';c.font='500 17px sans-serif';c.textAlign='center';c.fillText(l.id==='cafe'?'C':String(s.dayOrders.findIndex(o=>o.id===l.id)+1),p.x,p.y-8+bounce)}}
  c.textAlign='left';c.fillStyle='#3c5347';c.font='400 14px "Workshop", "Noto Sans KR", sans-serif';c.fillText('A LITTLE WORLD, A WARM CUP',42,44);c.font='500 37px "Workshop", "Noto Sans KR", sans-serif';c.fillText(s.locale==='ko'?'달동네 커피':'Neighborhood Coffee',40,95);c.font='400 15px "Workshop", "Noto Sans KR", sans-serif';c.fillStyle='#687763';c.fillText('서두르지 않아도 괜찮아요.',43,126);
- c.fillStyle='#f8f2e5';c.beginPath();c.roundRect(943,30,217,92,8);c.fill();c.fillStyle='#485a48';c.font='500 18px "Workshop", "Noto Sans KR", sans-serif';c.fillText('배달  '+s.done.length+' / 4',966,63);c.font='400 15px "Workshop", "Noto Sans KR", sans-serif';c.fillText('들고 있는 커피  '+s.carrying+'잔',966,96);
+ c.fillStyle='#f8f2e5';c.beginPath();c.roundRect(943,30,217,145,8);c.fill();c.fillStyle='#485a48';c.font='500 18px "Workshop", "Noto Sans KR", sans-serif';c.fillText('DAY '+s.day,966,58);c.font='400 15px "Workshop", "Noto Sans KR", sans-serif';c.fillText('배달  '+s.done.length+' / '+DELIVERY_COUNT,966,84);c.fillText('들고 있는 커피  '+s.carrying+'잔',966,106);
+ {const mm=Math.floor(Math.max(0,s.timeLeft)/60),ss=Math.floor(Math.max(0,s.timeLeft)%60),low=s.timeLeft<s.timeLimit*.2;c.font='500 15px "Workshop", "Noto Sans KR", sans-serif';c.fillStyle=low?'#b5453a':'#485a48';c.fillText('남은 시간  '+mm+':'+String(ss).padStart(2,'0'),966,128);}
+ c.font='400 13px "Workshop", "Noto Sans KR", sans-serif';c.fillStyle='#7d6a4a';c.fillText('최고 기록 DAY '+s.bestDay+(s.lives>0?'  ·  하트 ×'+s.lives:''),966,150);
  // A compass uses actual spherical tangents, including targets beyond the horizon.
- if(s.status!=='won'){
+ if(s.status==='playing'){
   const dest=target(s),delta=sub(dest.door,mul(s.n,dot(dest.door,s.n))),east=norm(cross(s.north,s.n));const a=Math.atan2(dot(delta,east),dot(delta,s.north));
-  c.save();c.translate(1065,188);c.fillStyle='#f8f2e5';c.beginPath();c.arc(0,0,38,0,TAU);c.fill();c.rotate(a);c.fillStyle='#b66f4f';c.beginPath();c.moveTo(0,-26);c.lineTo(11,12);c.lineTo(0,5);c.lineTo(-11,12);c.closePath();c.fill();c.restore();
-  c.fillStyle='#58664e';c.font='400 14px "Workshop", "Noto Sans KR", sans-serif';c.textAlign='center';c.fillText(s.locale==='ko'?dest.name:dest.en,1065,246);c.fillText(Math.round(angle(s.n,dest.door)*R*10)+' 걸음 거리',1065,269);
+  c.save();c.translate(1065,222);c.fillStyle='#f8f2e5';c.beginPath();c.arc(0,0,38,0,TAU);c.fill();c.rotate(a);c.fillStyle='#b66f4f';c.beginPath();c.moveTo(0,-26);c.lineTo(11,12);c.lineTo(0,5);c.lineTo(-11,12);c.closePath();c.fill();c.restore();
+  c.fillStyle='#58664e';c.font='400 14px "Workshop", "Noto Sans KR", sans-serif';c.textAlign='center';c.fillText(s.locale==='ko'?dest.name:dest.en,1065,280);c.fillText(Math.round(angle(s.n,dest.door)*R*10)+' 걸음 거리',1065,303);
  }
  const near=nearest(s);if(s.status==='playing'&&near){c.textAlign='center';c.fillStyle='#3f6151';c.beginPath();c.roundRect(362,716,476,42,21);c.fill();c.fillStyle='#fff8e7';c.font='400 17px "Workshop", "Noto Sans KR", sans-serif';c.fillText('E / Space  ·  '+(near.id==='cafe'?'커피 받기':s.done.includes(near.id)?'인사 나누기':'커피 전하기'),600,743)}
  c.textAlign='center';if(s.messageTime>0&&s.status==='playing'){c.fillStyle='#405a48';c.font='400 15px "Workshop", "Noto Sans KR", sans-serif';c.fillText(s.message,600,783)}
  if(overlay&&s.status!=='playing'){
-  c.fillStyle='#f4ebdbe8';c.beginPath();c.roundRect(278,284,644,254,12);c.fill();c.fillStyle='#405a48';c.font='500 36px "Workshop", "Noto Sans KR", sans-serif';c.fillText(s.status==='ready'?'커피 한 잔의 작은 여행':s.status==='paused'?'잠깐 쉬어 가요':'오늘의 배달을 마쳤어요',600,347);
-  c.font='400 18px "Workshop", "Noto Sans KR", sans-serif';c.fillText(s.status==='won'?'네 잔의 커피, 네 이웃의 인사.':s.status==='paused'?'계속하기를 누르면 마을로 돌아갑니다.':'카페에서 네 잔을 받아, 이웃에게 전해 주세요.',600,394);
-  c.fillText('방향키 / WASD 이동  ·  E / Space 대화',600,436);c.fillStyle='#aa6e50';c.font='400 16px "Workshop", "Noto Sans KR", sans-serif';c.fillText('아래 '+(s.status==='won'?'다시 산책하기':s.status==='paused'?'계속하기':'산책 시작')+' 버튼',600,486);
+  const copy={ready:{title:'커피 한 잔의 작은 여행',sub:'카페에서 네 잔을 받아, 이웃에게 전해 주세요.',btn:'산책 시작'},paused:{title:'잠깐 쉬어 가요',sub:'계속하기를 누르면 마을로 돌아갑니다.',btn:'계속하기'},dayclear:{title:'DAY '+s.day+' 배달을 마쳤어요!',sub:'성장 카드를 하나 골라 다음 날을 준비하세요.',btn:'카드 선택 (1 / 2 · Enter)'},timeup:{title:'시간 초과! DAY '+s.day+' 실패',sub:'처음부터 다시 도전해 보아요.',btn:'다시 시작'}}[s.status];
+  c.fillStyle='#f4ebdbe8';c.beginPath();c.roundRect(278,284,644,254,12);c.fill();c.fillStyle='#405a48';c.font='500 36px "Workshop", "Noto Sans KR", sans-serif';c.fillText(copy.title,600,347);
+  c.font='400 18px "Workshop", "Noto Sans KR", sans-serif';c.fillText(copy.sub,600,394);
+  if(s.status==='dayclear'&&s.perkChoices.length===2){
+   const p1=PERK_POOL.find(p=>p.id===s.perkChoices[0]),p2=PERK_POOL.find(p=>p.id===s.perkChoices[1]);
+   c.fillText('①  '+p1.name+' · '+p1.desc,600,432);
+   c.fillText('②  '+p2.name+' · '+p2.desc,600,458);
+  }else{
+   c.fillText('방향키 / WASD 이동  ·  E / Space 대화',600,436);
+  }
+  c.fillStyle='#aa6e50';c.font='400 16px "Workshop", "Noto Sans KR", sans-serif';c.fillText('아래 '+copy.btn+' 버튼',600,486);
  }c.restore();
 }
 function mount(canvas,onUpdate=()=>{}){
@@ -160,9 +210,19 @@ function mount(canvas,onUpdate=()=>{}){
  const visibility=()=>{if(document.hidden)blur()};
  function loop(ms){if(!alive)return;const dt=last?(ms-last)/1000:0;last=ms;step(s,dt,{x:pointer.x+(keys.has('arrowright')||keys.has('d')?1:0)-(keys.has('arrowleft')||keys.has('a')?1:0),y:pointer.y+(keys.has('arrowdown')||keys.has('s')?1:0)-(keys.has('arrowup')||keys.has('w')?1:0)});draw(c,s);onUpdate(s);raf=requestAnimationFrame(loop)}
  addEventListener('keydown',keydown);addEventListener('keyup',keyup);addEventListener('blur',blur);document.addEventListener('visibilitychange',visibility);raf=requestAnimationFrame(loop);
- return {get state(){return s},start(){if(s.status==='won'){const l=s.locale;s=newGame();s.locale=l}start(s)},pause(){pause(s)},reset(){const l=s.locale;s=newGame();s.locale=l;keys.clear();pointer={x:0,y:0}},interact(){interact(s)},locale(l){s.locale=l==='ko'?'ko':'en'},target(id){chooseTarget(s,id)},pointer(x,y){pointer={x,y}},destroy(){alive=false;cancelAnimationFrame(raf);removeEventListener('keydown',keydown);removeEventListener('keyup',keyup);removeEventListener('blur',blur);document.removeEventListener('visibilitychange',visibility)}};
+ return {get state(){return s},start(){if(s.status==='timeup'){const l=s.locale;s=newGame();s.locale=l}start(s)},pause(){pause(s)},reset(){const l=s.locale;s=newGame();s.locale=l;keys.clear();pointer={x:0,y:0}},interact(){interact(s)},perk(idx){choosePerk(s,idx)},locale(l){s.locale=l==='ko'?'ko':'en'},target(id){chooseTarget(s,id)},pointer(x,y){pointer={x,y}},destroy(){alive=false;cancelAnimationFrame(raf);removeEventListener('keydown',keydown);removeEventListener('keyup',keyup);removeEventListener('blur',blur);document.removeEventListener('visibilitychange',visibility)}};
 }
-return {W,H,R,SITES,ORDERS,CAFE,newGame,start,pause,step,interact,nearest,target,chooseTarget,draw,mount,math:{add,sub,mul,dot,cross,len,norm,at,angle,frame},camera};
+return {W,H,R,SITES,CAFE,DELIVERY_COUNT,PERK_POOL,newGame,start,pause,step,interact,nearest,target,chooseTarget,draw,mount,math:{add,sub,mul,dot,cross,len,norm,at,angle,frame},camera};
 });
 
-const game=Daldongne.mount(document.querySelector("canvas"),()=>{});game.locale("en");document.querySelector("#start").onclick=()=>{game.start();document.querySelector("canvas").focus()};document.querySelector("#pause").onclick=()=>game.pause();document.querySelector("#reset").onclick=()=>game.reset();document.querySelector("#action").onclick=()=>game.interact();const held=new Map();function move(){let x=0,y=0;held.forEach(v=>{x+=v[0];y+=v[1]});game.pointer(x,y)}document.querySelectorAll('[data-dir]').forEach(b=>{b.onpointerdown=e=>{e.preventDefault();b.setPointerCapture(e.pointerId);held.set(e.pointerId,b.dataset.dir.split(',').map(Number));move()};const stop=e=>{held.delete(e.pointerId);move()};b.onpointerup=stop;b.onpointercancel=stop;b.onlostpointercapture=stop});addEventListener('blur',()=>{held.clear();move()});</script></body></html>
+const perksEl=document.querySelector('#perks'),perk1=document.querySelector('#perk1'),perk2=document.querySelector('#perk2');
+function syncPerks(s){
+ const show=s.status==='dayclear'&&s.perkChoices&&s.perkChoices.length===2;
+ perksEl.hidden=!show;
+ if(show){
+  const p1=Daldongne.PERK_POOL.find(p=>p.id===s.perkChoices[0]),p2=Daldongne.PERK_POOL.find(p=>p.id===s.perkChoices[1]);
+  perk1.textContent='①  '+p1.name+' · '+p1.desc;perk2.textContent='②  '+p2.name+' · '+p2.desc;
+ }
+}
+const game=Daldongne.mount(document.querySelector("canvas"),syncPerks);game.locale("en");document.querySelector("#start").onclick=()=>{game.start();document.querySelector("canvas").focus()};document.querySelector("#pause").onclick=()=>game.pause();document.querySelector("#reset").onclick=()=>game.reset();document.querySelector("#action").onclick=()=>game.interact();perk1.onclick=()=>{game.perk(0);document.querySelector("canvas").focus()};perk2.onclick=()=>{game.perk(1);document.querySelector("canvas").focus()};const held=new Map();function move(){let x=0,y=0;held.forEach(v=>{x+=v[0];y+=v[1]});game.pointer(x,y)}document.querySelectorAll('[data-dir]').forEach(b=>{b.onpointerdown=e=>{e.preventDefault();b.setPointerCapture(e.pointerId);held.set(e.pointerId,b.dataset.dir.split(',').map(Number));move()};const stop=e=>{held.delete(e.pointerId);move()};b.onpointerup=stop;b.onpointercancel=stop;b.onlostpointercapture=stop});addEventListener('blur',()=>{held.clear();move()});
+const controls=document.querySelector('#controls');addEventListener('keydown',e=>{if(/INPUT|TEXTAREA|SELECT/.test(e.target?.tagName))return;const k=e.key.toLowerCase();if(k==='n'){e.preventDefault();controls.classList.toggle('hidden')}else if(e.key==='Enter'){e.preventDefault();game.start();document.querySelector('canvas').focus()}else if(k==='1'){e.preventDefault();game.perk(0)}else if(k==='2'){e.preventDefault();game.perk(1)}});</script></body></html>
