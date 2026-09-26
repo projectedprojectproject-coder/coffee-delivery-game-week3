@@ -1,12 +1,26 @@
-<!doctype html><html lang="ko"><head><title>커피 배달 게임 | 프롬프트 구조화 실습</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}body{margin:0;background:#efe5d2;font-family:"Noto Sans KR","Malgun Gothic",sans-serif;color:#f4ebd7;overflow:auto}main{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}canvas{width:100%;min-height:0;flex:1;object-fit:contain;display:block}nav{flex-shrink:0;display:flex;justify-content:center;gap:5px;flex-wrap:wrap;padding:9px}button{font:inherit;font-size:12px;border:1px solid #aabbb0;border-radius:3px;background:#f9f4e6;color:#365b50;padding:9px 11px;cursor:pointer;touch-action:none}p{font-size:16px;margin:0 8px 8px;color:#4a2f1f;text-align:center;white-space:normal;overflow-wrap:break-word}
+<!doctype html><html lang="ko"><head><title>커피 배달 게임 | 프롬프트 구조화 실습</title><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><style>*{box-sizing:border-box}
+body{margin:0;background:radial-gradient(ellipse at 50% 20%,#3d2e1c 0%,#1b120a 100%);font-family:"Noto Sans KR","Malgun Gothic",sans-serif;color:#f4ebd7;overflow:auto}
+main{height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center}
+canvas{width:100%;min-height:0;flex:1;object-fit:contain;display:block;box-shadow:0 0 0 1px #6b4e22,0 0 40px #000a}
+nav{flex-shrink:0;display:flex;justify-content:center;gap:6px;flex-wrap:wrap;padding:10px 9px 4px}
+button{font:inherit;font-size:12px;font-weight:600;letter-spacing:.02em;border:1px solid #8a6a2f;border-radius:6px;background:linear-gradient(#4a3722,#2a1e11);color:#f0dfb0;padding:9px 12px;cursor:pointer;touch-action:none;box-shadow:inset 0 1px 0 #ffffff22,0 2px 3px #0007;transition:transform .08s,box-shadow .08s}
+button:hover{transform:translateY(-1px);box-shadow:inset 0 1px 0 #ffffff33,0 3px 7px #0009;border-color:#caa14a}
+button:active{transform:translateY(1px);box-shadow:inset 0 1px 3px #000a}
+p{font-size:16px;margin:2px 8px 10px;color:#e8d9b0;text-align:center;white-space:normal;overflow-wrap:break-word}
 #controls.hidden{display:none}
-.keys{display:flex;justify-content:center;align-items:center;gap:16px;flex-wrap:wrap;padding:2px 10px 10px;font-size:12px;color:#3c5347}
+.keys{display:flex;justify-content:center;align-items:center;gap:16px;flex-wrap:wrap;padding:2px 10px 10px;font-size:12px;color:#d8c9a0}
 .keys .grp{display:flex;align-items:center;gap:6px}
-.keys .lbl{color:#56624a}
-.keys kbd{display:inline-block;min-width:15px;padding:4px 8px;border:1px solid #8a9a86;border-radius:5px;background:#fbf6ea;color:#2f4a3d;font:600 12px/1 inherit;text-align:center;box-shadow:0 2px 0 #c9c0a2}
-#perks{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;padding:0 10px 9px}
+.keys .lbl{color:#b8a97a}
+.keys kbd{display:inline-block;min-width:15px;padding:4px 8px;border:1px solid #8a6a2f;border-radius:5px;background:#2e2114;color:#ffe4a3;font:700 12px/1 inherit;text-align:center;box-shadow:0 2px 0 #0007}
+#perks{display:flex;justify-content:center;gap:14px;flex-wrap:wrap;padding:0 10px 10px}
 #perks[hidden]{display:none}
-#perks button{max-width:320px;text-align:left;background:#fdf3df;border-color:#c99b5f;color:#7a4a1f;line-height:1.35}</style></head><body><main><canvas tabindex="0" aria-label="플레이할 게임"></canvas><div id="controls"><nav><button id="start">시작 / 계속</button><button id="pause">잠깐 멈추기</button><button id="reset">처음으로</button><button id="action">커피 받기 / 전하기</button><button data-dir="0,-1" aria-label="위">↑</button><button data-dir="-1,0" aria-label="왼쪽">←</button><button data-dir="0,1" aria-label="아래">↓</button><button data-dir="1,0" aria-label="오른쪽">→</button></nav><div id="perks" hidden><button id="perk1"></button><button id="perk2"></button></div><div class="keys"><span class="grp"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd><span class="lbl">/</span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span class="lbl">이동</span></span><span class="grp"><kbd>E</kbd><span class="lbl">/</span><kbd>Space</kbd><span class="lbl">커피 받기 · 전달</span></span><span class="grp"><kbd>Enter</kbd><span class="lbl">시작 / 계속</span></span><span class="grp"><kbd>1</kbd><kbd>2</kbd><span class="lbl">DAY 클리어 시 성장 카드 선택</span></span><span class="grp"><kbd>N</kbd><span class="lbl">컨트롤 숨기기</span></span></div></div><p>① 시작 누르기 → ② 방향키로 이동 → ③ 카페에서 E로 커피 받기 → ④ 이웃 앞에서 E로 배달하기</p></main><script>/* Dal-dongne Coffee. Original geometry and software 3D renderer. No dependencies. */
+#perks button{max-width:300px;min-width:220px;text-align:left;background:linear-gradient(#3a2c1c,#231910);border:2px solid #8a6a2f;border-left-width:7px;color:#f0dfb0;line-height:1.4;padding:10px 14px}
+#perks button b{display:block;font-size:13px;color:#ffe4a3;margin-bottom:3px;letter-spacing:0}
+#perks button span{display:block;font-size:11px;color:#c9b98a;font-weight:400}
+#perks button[data-perk="speed"]{border-left-color:#3fa7e0}
+#perks button[data-perk="time"]{border-left-color:#4caf6b}
+#perks button[data-perk="radius"]{border-left-color:#b07be0}
+#perks button[data-perk="life"]{border-left-color:#e0555a}</style></head><body><main><canvas tabindex="0" aria-label="플레이할 게임"></canvas><div id="controls"><nav><button id="start">시작 / 계속</button><button id="pause">잠깐 멈추기</button><button id="reset">처음으로</button><button id="action">커피 받기 / 전하기</button><button data-dir="0,-1" aria-label="위">↑</button><button data-dir="-1,0" aria-label="왼쪽">←</button><button data-dir="0,1" aria-label="아래">↓</button><button data-dir="1,0" aria-label="오른쪽">→</button></nav><div id="perks" hidden><button id="perk1"></button><button id="perk2"></button></div><div class="keys"><span class="grp"><kbd>↑</kbd><kbd>↓</kbd><kbd>←</kbd><kbd>→</kbd><span class="lbl">/</span><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd><span class="lbl">이동</span></span><span class="grp"><kbd>E</kbd><span class="lbl">/</span><kbd>Space</kbd><span class="lbl">커피 받기 · 전달</span></span><span class="grp"><kbd>Enter</kbd><span class="lbl">시작 / 계속</span></span><span class="grp"><kbd>1</kbd><kbd>2</kbd><span class="lbl">DAY 클리어 시 성장 카드 선택</span></span><span class="grp"><kbd>N</kbd><span class="lbl">컨트롤 숨기기</span></span></div></div><p>① 시작 누르기 → ② 방향키로 이동 → ③ 카페에서 E로 커피 받기 → ④ 이웃 앞에서 E로 배달하기</p></main><script>/* Dal-dongne Coffee. Original geometry and software 3D renderer. No dependencies. */
 (function(root,factory){const api=factory();if(typeof module==='object'&&module.exports)module.exports=api;else root.Daldongne=api})(typeof globalThis!=='undefined'?globalThis:this,function(){
 'use strict';
 const W=1200,H=800,R=5.5,TAU=Math.PI*2;
@@ -28,10 +42,10 @@ const SITES=[
 ].map(s=>({...s,n:at(s.lon,s.lat),door:at(s.lon,s.lat-.24)}));
 const CAFE=SITES[0],DELIVERY_COUNT=4,DAY1_TIME=180,FLAVORS=['따뜻한 아메리카노','아이스 라테','디카페인 라테','따뜻한 보리 라테','바닐라 라테','카페모카','콜드브루 커피','헤이즐넛 라테'];
 const PERK_POOL=[
- {id:'speed',name:'가벼운 발걸음',desc:'이동 속도 +15%',apply:s=>{s.perkSpeedMul*=1.15}},
- {id:'time',name:'여유로운 하루',desc:'다음 날부터 제한시간 +10초',apply:s=>{s.perkTimeBonus+=10}},
- {id:'radius',name:'익숙한 골목',desc:'상호작용 판정 범위 +20%',apply:s=>{s.perkRadiusMul*=1.2}},
- {id:'life',name:'여분의 하루',desc:'시간 초과 시 1회 부활 (하트 +1)',apply:s=>{s.lives+=1}}
+ {id:'speed',name:'가벼운 발걸음',desc:'이동 속도 +15%',color:'#3fa7e0',icon:'⚡',apply:s=>{s.perkSpeedMul*=1.15}},
+ {id:'time',name:'여유로운 하루',desc:'다음 날부터 제한시간 +10초',color:'#4caf6b',icon:'⏳',apply:s=>{s.perkTimeBonus+=10}},
+ {id:'radius',name:'익숙한 골목',desc:'상호작용 판정 범위 +20%',color:'#b07be0',icon:'🎯',apply:s=>{s.perkRadiusMul*=1.2}},
+ {id:'life',name:'여분의 하루',desc:'시간 초과 시 1회 부활 (하트 +1)',color:'#e0555a',icon:'❤',apply:s=>{s.lives+=1}}
 ];
 function loadBestDay(){try{return parseInt(localStorage.getItem('daldongne_best_day')||'0',10)||0}catch(e){return 0}}
 function saveBestDay(v){try{localStorage.setItem('daldongne_best_day',String(v))}catch(e){}}
@@ -177,29 +191,63 @@ function draw(c,s,{overlay=true}={}){
   c.font='500 14px "Workshop", "Noto Sans KR", sans-serif';const width=c.measureText(l.text).width+18;c.fillStyle='#faf2df';c.fillRect(p.x-width/2,p.y-12,width,24);c.fillStyle='#49584a';c.textAlign='center';c.fillText(l.text,p.x,p.y+5);
  }else if(l.id===s.target){const bounce=Math.sin(s.time*3)*3;c.fillStyle='#b5704f';c.beginPath();c.moveTo(p.x,p.y+13+bounce);c.lineTo(p.x-8,p.y-1+bounce);c.lineTo(p.x+8,p.y-1+bounce);c.fill();c.beginPath();c.arc(p.x,p.y-14+bounce,15,0,TAU);c.fill();c.fillStyle='#fff7e5';c.font='500 17px sans-serif';c.textAlign='center';c.fillText(l.id==='cafe'?'C':String(s.dayOrders.findIndex(o=>o.id===l.id)+1),p.x,p.y-8+bounce)}}
  c.textAlign='left';c.fillStyle='#3c5347';c.font='400 14px "Workshop", "Noto Sans KR", sans-serif';c.fillText('A LITTLE WORLD, A WARM CUP',42,44);c.font='500 37px "Workshop", "Noto Sans KR", sans-serif';c.fillText(s.locale==='ko'?'달동네 커피':'Neighborhood Coffee',40,95);c.font='400 15px "Workshop", "Noto Sans KR", sans-serif';c.fillStyle='#687763';c.fillText('서두르지 않아도 괜찮아요.',43,126);
- c.fillStyle='#f8f2e5';c.beginPath();c.roundRect(943,30,217,145,8);c.fill();c.fillStyle='#485a48';c.font='500 18px "Workshop", "Noto Sans KR", sans-serif';c.fillText('DAY '+s.day,966,58);c.font='400 15px "Workshop", "Noto Sans KR", sans-serif';c.fillText('배달  '+s.done.length+' / '+DELIVERY_COUNT,966,84);c.fillText('들고 있는 커피  '+s.carrying+'잔',966,106);
- {const mm=Math.floor(Math.max(0,s.timeLeft)/60),ss=Math.floor(Math.max(0,s.timeLeft)%60),low=s.timeLeft<s.timeLimit*.2;c.font='500 15px "Workshop", "Noto Sans KR", sans-serif';c.fillStyle=low?'#b5453a':'#485a48';c.fillText('남은 시간  '+mm+':'+String(ss).padStart(2,'0'),966,128);}
- c.font='400 13px "Workshop", "Noto Sans KR", sans-serif';c.fillStyle='#7d6a4a';c.fillText('최고 기록 DAY '+s.bestDay+(s.lives>0?'  ·  하트 ×'+s.lives:''),966,150);
+ // Roguelike stat plate: dark leather panel with gold trim, a stage ribbon and an HP-style timer bar.
+ {
+  const px=940,py=26,pw=224,ph=172;
+  c.save();
+  c.beginPath();c.roundRect(px,py,pw,ph,12);c.fillStyle='rgba(32,23,14,0.94)';c.fill();
+  c.lineWidth=3;c.strokeStyle='#caa14a';c.stroke();
+  c.beginPath();c.roundRect(px+4,py+4,pw-8,ph-8,9);c.lineWidth=1;c.strokeStyle='#6b4e22';c.stroke();
+  c.fillStyle='#8a6a2f';c.beginPath();c.moveTo(px+10,py+8);c.lineTo(px+pw-10,py+8);c.lineTo(px+pw-16,py+38);c.lineTo(px+16,py+38);c.closePath();c.fill();
+  c.textAlign='center';c.fillStyle='#3a2a14';c.font='400 11px "Workshop", "Noto Sans KR", sans-serif';c.fillText('S T A G E',px+pw/2,py+21);
+  c.fillStyle='#ffe4a3';c.font='700 20px "Workshop", "Noto Sans KR", sans-serif';c.fillText('DAY '+s.day,px+pw/2,py+35);
+  c.textAlign='left';
+  c.font='400 13px "Workshop", "Noto Sans KR", sans-serif';c.fillStyle='#e8d9b0';c.fillText('배달',px+16,py+58);
+  for(let i=0;i<DELIVERY_COUNT;i++){const cx=px+66+i*22,cy=py+53,done=i<s.done.length;c.beginPath();c.arc(cx,cy,7,0,TAU);c.fillStyle=done?'#e8b23a':'rgba(255,255,255,0.08)';c.fill();c.lineWidth=1.3;c.strokeStyle=done?'#a9791f':'#6b5a3a';c.stroke();}
+  c.fillStyle='#e8d9b0';c.font='400 13px "Workshop", "Noto Sans KR", sans-serif';c.fillText('들고 있는 커피 ☕×'+s.carrying,px+16,py+80);
+  const ratio=clamp(s.timeLeft/Math.max(1,s.timeLimit),0,1),barX=px+16,barY=py+92,barW=pw-32,barH=16;
+  c.beginPath();c.roundRect(barX,barY,barW,barH,8);c.fillStyle='rgba(0,0,0,0.35)';c.fill();
+  const barColor=ratio<.2?'#c94b3f':ratio<.5?'#d9a83a':'#5fae63';
+  c.beginPath();c.roundRect(barX,barY,Math.max(10,barW*ratio),barH,8);c.fillStyle=barColor;c.fill();
+  c.lineWidth=1;c.strokeStyle='#0006';c.beginPath();c.roundRect(barX,barY,barW,barH,8);c.stroke();
+  const mm=Math.floor(Math.max(0,s.timeLeft)/60),ss=Math.floor(Math.max(0,s.timeLeft)%60);
+  c.fillStyle='#fff7e0';c.font='700 12px "Workshop", "Noto Sans KR", sans-serif';c.textAlign='center';c.fillText(mm+':'+String(ss).padStart(2,'0'),barX+barW/2,barY+12);c.textAlign='left';
+  c.font='400 12px "Workshop", "Noto Sans KR", sans-serif';c.fillStyle='#c9b98a';c.fillText('🏆 최고 기록 DAY '+s.bestDay,px+16,py+128);
+  if(s.lives>0){c.fillStyle='#e0555a';c.font='13px sans-serif';let hx=px+16;for(let i=0;i<s.lives;i++){c.fillText('♥',hx,py+148);hx+=16}}
+  c.restore();
+ }
  // A compass uses actual spherical tangents, including targets beyond the horizon.
  if(s.status==='playing'){
   const dest=target(s),delta=sub(dest.door,mul(s.n,dot(dest.door,s.n))),east=norm(cross(s.north,s.n));const a=Math.atan2(dot(delta,east),dot(delta,s.north));
-  c.save();c.translate(1065,222);c.fillStyle='#f8f2e5';c.beginPath();c.arc(0,0,38,0,TAU);c.fill();c.rotate(a);c.fillStyle='#b66f4f';c.beginPath();c.moveTo(0,-26);c.lineTo(11,12);c.lineTo(0,5);c.lineTo(-11,12);c.closePath();c.fill();c.restore();
-  c.fillStyle='#58664e';c.font='400 14px "Workshop", "Noto Sans KR", sans-serif';c.textAlign='center';c.fillText(s.locale==='ko'?dest.name:dest.en,1065,280);c.fillText(Math.round(angle(s.n,dest.door)*R*10)+' 걸음 거리',1065,303);
+  c.save();c.translate(1065,246);c.fillStyle='#f8f2e5';c.beginPath();c.arc(0,0,38,0,TAU);c.fill();c.rotate(a);c.fillStyle='#b66f4f';c.beginPath();c.moveTo(0,-26);c.lineTo(11,12);c.lineTo(0,5);c.lineTo(-11,12);c.closePath();c.fill();c.restore();
+  c.fillStyle='#58664e';c.font='400 14px "Workshop", "Noto Sans KR", sans-serif';c.textAlign='center';c.fillText(s.locale==='ko'?dest.name:dest.en,1065,304);c.fillText(Math.round(angle(s.n,dest.door)*R*10)+' 걸음 거리',1065,327);
  }
  const near=nearest(s);if(s.status==='playing'&&near){c.textAlign='center';c.fillStyle='#3f6151';c.beginPath();c.roundRect(362,716,476,42,21);c.fill();c.fillStyle='#fff8e7';c.font='400 17px "Workshop", "Noto Sans KR", sans-serif';c.fillText('E / Space  ·  '+(near.id==='cafe'?'커피 받기':s.done.includes(near.id)?'인사 나누기':'커피 전하기'),600,743)}
  c.textAlign='center';if(s.messageTime>0&&s.status==='playing'){c.fillStyle='#405a48';c.font='400 15px "Workshop", "Noto Sans KR", sans-serif';c.fillText(s.message,600,783)}
+ function perkCard(x,y,w,h,id,tag){
+  const p=PERK_POOL.find(x=>x.id===id);c.save();
+  c.beginPath();c.roundRect(x,y,w,h,10);c.fillStyle='#fffaf0';c.fill();
+  c.lineWidth=2;c.strokeStyle=p.color;c.stroke();
+  c.fillStyle=p.color;c.fillRect(x,y,6,h);
+  c.textAlign='left';c.font='600 15px "Workshop", "Noto Sans KR", sans-serif';c.fillStyle='#3a2a14';c.fillText(tag+'  '+p.icon+' '+p.name,x+18,y+28);
+  c.font='400 13px "Workshop", "Noto Sans KR", sans-serif';c.fillStyle='#6b5a3a';c.fillText(p.desc,x+18,y+50);
+  c.restore();
+ }
  if(overlay&&s.status!=='playing'){
   const copy={ready:{title:'커피 한 잔의 작은 여행',sub:'카페에서 네 잔을 받아, 이웃에게 전해 주세요.',btn:'산책 시작'},paused:{title:'잠깐 쉬어 가요',sub:'계속하기를 누르면 마을로 돌아갑니다.',btn:'계속하기'},dayclear:{title:'DAY '+s.day+' 배달을 마쳤어요!',sub:'성장 카드를 하나 골라 다음 날을 준비하세요.',btn:'카드 선택 (1 / 2 · Enter)'},timeup:{title:'시간 초과! DAY '+s.day+' 실패',sub:'처음부터 다시 도전해 보아요.',btn:'다시 시작'}}[s.status];
-  c.fillStyle='#f4ebdbe8';c.beginPath();c.roundRect(278,284,644,254,12);c.fill();c.fillStyle='#405a48';c.font='500 36px "Workshop", "Noto Sans KR", sans-serif';c.fillText(copy.title,600,347);
-  c.font='400 18px "Workshop", "Noto Sans KR", sans-serif';c.fillText(copy.sub,600,394);
-  if(s.status==='dayclear'&&s.perkChoices.length===2){
-   const p1=PERK_POOL.find(p=>p.id===s.perkChoices[0]),p2=PERK_POOL.find(p=>p.id===s.perkChoices[1]);
-   c.fillText('①  '+p1.name+' · '+p1.desc,600,432);
-   c.fillText('②  '+p2.name+' · '+p2.desc,600,458);
+  const isClear=s.status==='dayclear',px=isClear?258:278,py=isClear?256:284,pw=isClear?684:644,ph=isClear?316:254;
+  c.beginPath();c.roundRect(px,py,pw,ph,14);c.fillStyle='#f4ebdbe8';c.fill();
+  c.lineWidth=3;c.strokeStyle='#c99b5f';c.stroke();
+  c.beginPath();c.roundRect(px+5,py+5,pw-10,ph-10,10);c.lineWidth=1;c.strokeStyle='#a9791f';c.stroke();
+  c.textAlign='center';c.fillStyle='#405a48';c.font='500 36px "Workshop", "Noto Sans KR", sans-serif';c.fillText(copy.title,600,isClear?322:347);
+  c.font='400 18px "Workshop", "Noto Sans KR", sans-serif';c.fillText(copy.sub,600,isClear?364:394);
+  if(isClear&&s.perkChoices.length===2){
+   perkCard(285,388,306,76,s.perkChoices[0],'①');
+   perkCard(609,388,306,76,s.perkChoices[1],'②');
   }else{
    c.fillText('방향키 / WASD 이동  ·  E / Space 대화',600,436);
   }
-  c.fillStyle='#aa6e50';c.font='400 16px "Workshop", "Noto Sans KR", sans-serif';c.fillText('아래 '+copy.btn+' 버튼',600,486);
+  c.fillStyle='#aa6e50';c.font='400 16px "Workshop", "Noto Sans KR", sans-serif';c.fillText('아래 '+copy.btn+' 버튼',600,isClear?506:486);
  }c.restore();
 }
 function mount(canvas,onUpdate=()=>{}){
@@ -221,7 +269,8 @@ function syncPerks(s){
  perksEl.hidden=!show;
  if(show){
   const p1=Daldongne.PERK_POOL.find(p=>p.id===s.perkChoices[0]),p2=Daldongne.PERK_POOL.find(p=>p.id===s.perkChoices[1]);
-  perk1.textContent='①  '+p1.name+' · '+p1.desc;perk2.textContent='②  '+p2.name+' · '+p2.desc;
+  perk1.innerHTML='<b>①  '+p1.icon+' '+p1.name+'</b><span>'+p1.desc+'</span>';perk1.dataset.perk=p1.id;
+  perk2.innerHTML='<b>②  '+p2.icon+' '+p2.name+'</b><span>'+p2.desc+'</span>';perk2.dataset.perk=p2.id;
  }
 }
 const game=Daldongne.mount(document.querySelector("canvas"),syncPerks);game.locale("en");document.querySelector("#start").onclick=()=>{game.start();document.querySelector("canvas").focus()};document.querySelector("#pause").onclick=()=>game.pause();document.querySelector("#reset").onclick=()=>game.reset();document.querySelector("#action").onclick=()=>game.interact();perk1.onclick=()=>{game.perk(0);document.querySelector("canvas").focus()};perk2.onclick=()=>{game.perk(1);document.querySelector("canvas").focus()};const held=new Map();function move(){let x=0,y=0;held.forEach(v=>{x+=v[0];y+=v[1]});game.pointer(x,y)}document.querySelectorAll('[data-dir]').forEach(b=>{b.onpointerdown=e=>{e.preventDefault();b.setPointerCapture(e.pointerId);held.set(e.pointerId,b.dataset.dir.split(',').map(Number));move()};const stop=e=>{held.delete(e.pointerId);move()};b.onpointerup=stop;b.onpointercancel=stop;b.onlostpointercapture=stop});addEventListener('blur',()=>{held.clear();move()});
